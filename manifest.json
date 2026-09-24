@@ -30,11 +30,7 @@
     "128": "src/images/icon-128.png"
   },
   "background": {
-    "scripts": [
-      "src/library/background/bundle.min.js"
-    ],
-    "service_worker": "src/library/background/bundle.min.js",
-    "type": "module"
+    "service_worker": "src/library/background/bundle.min.js"
   },
   "content_scripts": [],
   "browser_specific_settings": {

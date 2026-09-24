@@ -85,3 +85,7 @@ body {
     font-style: italic;
     font-size: 12px;
 }
+
+.history-title-row { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.history-title-row h1 { margin:0; }
+.history-title-row .language-select { width:auto; min-width:92px; }

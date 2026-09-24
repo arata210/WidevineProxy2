@@ -1,91 +1,21 @@
-/* History page - reuses popup.css tokens & key-item components, overrides
-   the popup's fixed width and adds page/toolbar layout. */
-body {
-    width: auto;
-    max-width: 860px;
-    margin: 0 auto;
-}
-
-.page { padding: 22px 20px 40px; }
-
-.page-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--line);
-}
-
-.page-head h1 { font-size: 20px; }
-.page-head .sub { font-size: 11px; color: var(--text-mute); }
-
-/* Toolbar */
-.toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-
-.search {
-    flex: 1;
-    min-width: 200px;
-    padding: 7px 10px;
-    background: var(--panel-2);
-    border: 1px solid var(--line-2);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 12px;
-}
-
-.search::placeholder { color: var(--text-faint); }
-.search:focus { outline: none; border-color: var(--border-btn-hover); }
-
-.filters { display: flex; }
-
-.filter-btn {
-    padding: 6px 11px !important;
-    font-size: 11px !important;
-    background: var(--panel-2);
-    border: 1px solid var(--line-2);
-    color: var(--text-mute);
-    margin-left: -1px;
-}
-
-.filter-btn:first-child { margin-left: 0; }
-.filter-btn:hover { color: var(--text); }
-.filter-btn.active {
-    background: var(--accent-bg);
-    border-color: var(--accent-border);
-    color: var(--accent);
-    z-index: 1;
-}
-
-.result-count {
-    font-size: 11px;
-    color: var(--text-mute);
-    margin-bottom: 8px;
-}
-
-.result-count b { color: var(--text); font-weight: 600; }
-
-/* List - the .key-item component styling comes from popup.css */
-#history-list {
-    border: 1px solid var(--line);
-    background: var(--panel);
-}
-
-.hist-empty {
-    padding: 44px 16px;
-    text-align: center;
-    color: var(--text-faint);
-    font-style: italic;
-    font-size: 12px;
-}
-
-.history-title-row { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.history-title-row h1 { margin:0; }
-.history-title-row .language-select { width:auto; min-width:92px; }
+body{width:auto;max-width:1180px;margin:0 auto}
+.page{min-height:100vh;padding:28px 26px 48px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+.history-title-row{display:flex;align-items:center;gap:14px}
+.page-head h1{margin:0;font-size:26px}
+.page-head .sub{display:inline-block;margin-top:8px;color:var(--text-muted);font-size:12px}
+.history-title-row .language-select{width:108px!important;min-width:108px}
+.toolbar{display:grid;grid-template-columns:minmax(280px,1.6fr) auto auto auto;align-items:center;gap:10px;margin-bottom:14px}
+.search{width:100%;min-height:46px;padding:10px 13px;border:1px solid var(--line-strong);border-radius:11px;background:var(--panel);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+.search::placeholder{color:var(--text-muted)}
+.filters{display:flex;min-height:44px}
+.filter-btn{min-height:44px!important;padding:8px 13px!important;border-radius:0!important;margin-left:-1px;background:var(--panel);color:var(--text-soft);font-size:12px!important}
+.filter-btn:first-child{margin-left:0;border-radius:10px 0 0 10px!important}
+.filter-btn:last-child{border-radius:0 10px 10px 0!important}
+.filter-btn.active{position:relative;z-index:1;color:var(--accent);background:var(--accent-soft);border-color:var(--accent-line)}
+.toolbar>button{min-height:44px;white-space:nowrap}
+.result-count{margin-bottom:8px;color:var(--text-muted);font-size:12px}.result-count b{color:var(--text);font-weight:700}
+#history-list{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:var(--shadow)}
+.hist-empty{padding:72px 20px;text-align:center;color:var(--text-muted);font-size:14px}
+@media(max-width:980px){.toolbar{grid-template-columns:1fr 1fr}.search{grid-column:1/-1}}
+@media(max-width:700px){.page{padding:18px 14px 34px}.toolbar{grid-template-columns:1fr}.search{grid-column:auto}.filters{width:100%}.filter-btn{flex:1}.history-title-row{align-items:flex-start;flex-direction:column}}

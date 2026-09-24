@@ -29,8 +29,6 @@ const ignoreFiles = [
     "library/main/session.js",
     "library/main/util.js",
     "ui/build.js",
-    "ui/history.js",
-    "ui/popup.js",
     "ui/icons.js",
     "ui/keys-render.js",
 ];

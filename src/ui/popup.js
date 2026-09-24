@@ -14,25 +14,19 @@ const passHeaders = document.getElementById("passHeaders");
 let booting = true;
 let settings = {};
 
-(async () => {
+const t = (key, fallback) => window.WP2I18n?.t(key) || fallback || key;
+
+(() => {
     const el = document.getElementById("version");
-    if (!el)
-        return;
-
-    let version = "";
     try {
-        version = chrome.runtime.getManifest().version;
+        const version = chrome.runtime.getManifest().version;
+        if (version && el) el.textContent = "v" + version;
     } catch (e) {}
-
-    if (version)
-        el.textContent = "v" + version;
 })();
 
 function saveSync(obj) {
     if (booting) return;
-    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
-        chrome.storage.sync.set(obj);
-    }
+    if (typeof chrome !== "undefined" && chrome.storage?.sync) chrome.storage.sync.set(obj);
     Object.assign(settings, obj);
 }
 
@@ -41,50 +35,62 @@ function applyTheme(dark) {
     darkToggle.checked = dark;
 }
 
-applyTheme(false);
 darkToggle.addEventListener("change", () => {
     applyTheme(darkToggle.checked);
     saveSync({ dark_mode: darkToggle.checked });
 });
 
-// --- Service certificate (false = never, true = when used) ---
 const certNever = document.getElementById("cert_never");
 const certWhen = document.getElementById("cert_when");
-
-function setServerCert(on) {
+const setServerCert = on => {
     certWhen.checked = on;
     certNever.checked = !on;
-}
+};
+[certNever, certWhen].forEach(r => r.addEventListener("change", () => saveSync({ server_cert: certWhen.checked })));
 
-const onServerCertChange = () => saveSync({ server_cert: certWhen.checked });
-[certNever, certWhen].forEach((r) => r.addEventListener("change", onServerCertChange));
-
-// --- Proxy mode (event / property) ---
 const proxyEvent = document.getElementById("proxy_event");
 const proxyProperty = document.getElementById("proxy_property");
-
-function setProxyMode(mode) {
+const setProxyMode = mode => {
     proxyProperty.checked = mode === "property";
     proxyEvent.checked = !proxyProperty.checked;
-}
+};
+const currentProxyMode = () => proxyProperty.checked ? "property" : "event";
+const applyCompat = () => {
+    if (remoteSelect.checked && proxyProperty.checked) {
+        setProxyMode("event");
+        saveSync({ proxy_mode: "event" });
+    }
 
-const currentProxyMode = () => (proxyProperty.checked ? "property" : "event");
-const onProxyModeChange = () => { saveSync({ proxy_mode: currentProxyMode() }); applyCompat(); };
-[proxyEvent, proxyProperty].forEach((r) => r.addEventListener("change", onProxyModeChange));
+    const disableProperty = remoteSelect.checked;
+    const disableRemote = proxyProperty.checked;
+    proxyProperty.disabled = disableProperty;
+    remoteSelect.disabled = disableRemote;
+
+    const propertyLabel = document.querySelector('label[for="proxy_property"]');
+    const remoteLabel = document.querySelector('label[for="remote_select"]');
+    [propertyLabel, remoteLabel].forEach((label, i) => {
+        if (!label) return;
+        label.classList.toggle("disabled", i === 0 ? disableProperty : disableRemote);
+        label.title = (i === 0 ? disableProperty : disableRemote)
+            ? t("propertyRemoteIncompatible", "Property proxy mode is incompatible with Remote CDM")
+            : "";
+    });
+};
+[proxyEvent, proxyProperty].forEach(r => r.addEventListener("change", () => {
+    saveSync({ proxy_mode: currentProxyMode() });
+    applyCompat();
+}));
 
 function applyEnabled() {
     const on = enabled.checked;
     statePill.classList.toggle("on", on);
-    stateText.textContent = on ? (window.WP2I18n?.t("enabledState") || "enabled") : (window.WP2I18n?.t("disabled") || "disabled");
+    stateText.textContent = on ? t("enabledState", "Enabled") : t("disabled", "Disabled");
 }
-
 enabled.addEventListener("change", () => {
     applyEnabled();
     saveSync({ enabled: enabled.checked });
 });
-applyEnabled();
 
-// --- Device type (Widevine Device / Remote CDM) shows one panel at a time ---
 function applyDeviceType() {
     const showWvd = wvdSelect.checked;
     const showRemote = remoteSelect.checked;
@@ -92,152 +98,99 @@ function applyDeviceType() {
     wvdPanel.style.display = none || showWvd ? "" : "none";
     remotePanel.style.display = none || showRemote ? "" : "none";
 }
-
-function onDeviceTypeChange() {
+const onDeviceTypeChange = () => {
     applyDeviceType();
     saveSync({ device_type: wvdSelect.checked ? "WVD" : "REMOTE" });
     applyCompat();
-}
+};
+[wvdSelect, remoteSelect].forEach(r => r.addEventListener("change", onDeviceTypeChange));
 
-wvdSelect.addEventListener("change", onDeviceTypeChange);
-remoteSelect.addEventListener("change", onDeviceTypeChange);
-applyDeviceType();
-
-// --- Property proxy mode is incompatible with Remote CDM
-const proxyPropertyLabel = document.querySelector('label[for="proxy_property"]');
-const remoteSelectLabel = document.querySelector('label[for="remote_select"]');
-const INCOMPAT_MSG = "Property proxy mode is incompatible with Remote CDM";
-
-function applyCompat() {
-    // Resolve a stored impossible combo (Remote CDM + Property): drop Property.
-    if (remoteSelect.checked && proxyProperty.checked) {
-        setProxyMode("event");
-        saveSync({ proxy_mode: "event" });
-    }
-    const disableProperty = remoteSelect.checked; // Remote selected -> no Property
-    const disableRemote = proxyProperty.checked;  // Property selected -> no Remote
-
-    proxyProperty.disabled = disableProperty;
-    proxyPropertyLabel.classList.toggle("disabled", disableProperty);
-    proxyPropertyLabel.title = disableProperty ? INCOMPAT_MSG : "";
-
-    remoteSelect.disabled = disableRemote;
-    remoteSelectLabel.classList.toggle("disabled", disableRemote);
-    remoteSelectLabel.title = disableRemote ? INCOMPAT_MSG : "";
-}
-
-applyCompat();
-
-// --- Packager toggle (mp4decrypt / shaka-packager) ---
 const pkgMp4 = document.getElementById("pkg_mp4");
 const pkgShaka = document.getElementById("pkg_shaka");
-
-function setPackager(shaka) {
+const setPackager = shaka => {
     pkgShaka.checked = shaka;
     pkgMp4.checked = !shaka;
-}
+};
+[pkgMp4, pkgShaka].forEach(r => r.addEventListener("change", () => {
+    saveSync({ use_shaka: pkgShaka.checked });
+    refreshCommands();
+}));
 
-const onPackagerChange = () => { saveSync({ use_shaka: pkgShaka.checked }); refreshCommands(); };
-pkgMp4.addEventListener("change", onPackagerChange);
-pkgShaka.addEventListener("change", onPackagerChange);
-
-// --- Quotes toggle (cmd / bash) ---
 const quoteCmd = document.getElementById("quote_cmd");
 const quoteBash = document.getElementById("quote_bash");
-
-function setQuotes(bash) {
+const setQuotes = bash => {
     quoteBash.checked = bash;
     quoteCmd.checked = !bash;
-}
+};
+[quoteCmd, quoteBash].forEach(r => r.addEventListener("change", () => {
+    saveSync({ use_single_quotes: quoteBash.checked });
+    refreshCommands();
+}));
 
-const onQuotesChange = () => { saveSync({ use_single_quotes: quoteBash.checked }); refreshCommands(); };
-quoteCmd.addEventListener("change", onQuotesChange);
-quoteBash.addEventListener("change", onQuotesChange);
-
-// --- Save-name toggle (don't / from title / from url) ---
 const saveNone = document.getElementById("save_none");
 const saveTitle = document.getElementById("save_title");
 const saveUrl = document.getElementById("save_url");
-
-function setSaveName(mode) {
+const setSaveName = mode => {
     saveTitle.checked = mode === "title";
     saveUrl.checked = mode === "url";
     saveNone.checked = !saveTitle.checked && !saveUrl.checked;
-}
+};
+[saveNone, saveTitle, saveUrl].forEach(r => r.addEventListener("change", () => {
+    saveSync({ save_name: saveTitle.checked ? "title" : saveUrl.checked ? "url" : "none" });
+    refreshCommands();
+}));
 
-const currentSaveName = () => (saveTitle.checked ? "title" : saveUrl.checked ? "url" : "none");
-const onSaveNameChange = () => { saveSync({ save_name: currentSaveName() }); refreshCommands(); };
-passHeaders.addEventListener("change", () => { saveSync({ pass_headers: passHeaders.checked }); refreshCommands(); });
-[saveNone, saveTitle, saveUrl].forEach((r) => r.addEventListener("change", onSaveNameChange));
+passHeaders.addEventListener("change", () => {
+    saveSync({ pass_headers: passHeaders.checked });
+    refreshCommands();
+});
 
-// --- Collapsible Command Options ---
 const cmdSection = document.getElementById("command-options");
 cmdSection.querySelector(".collapse-head").addEventListener("click", () => {
     const collapsed = cmdSection.classList.toggle("collapsed");
     saveSync({ command_options_collapsed: collapsed });
 });
 
-// --- EME status -------------------------------------------
 const drmStatusEl = document.getElementById("drmStatus");
-
 function setEmeStatusField(cell, st) {
     cell.classList.remove("ok", "fail", "pending");
     if (!st) {
         cell.classList.add("pending");
-        cell.title = cell.dataset.eme + " - waiting";
-    } else {
-        cell.classList.add(st.success ? "ok" : "fail");
-        cell.title = cell.dataset.eme + (st.success ? " - success" : " - failed") +
-            (st.args !== undefined ? "\n" + st.args : "");
+        cell.title = cell.dataset.eme + " - " + t("waiting", "waiting");
+        return;
     }
+    cell.classList.add(st.success ? "ok" : "fail");
+    cell.title = cell.dataset.eme + " - " +
+        (st.success ? t("success", "success") : t("failed", "failed")) +
+        (st.args !== undefined ? "\n" + st.args : "");
 }
 
 async function refreshEmeStatuses(tabId) {
-    let statuses;
+    if (tabId == null) return;
     try {
-        statuses = await chrome.tabs.sendMessage(tabId, { type: "EME_STATUS_ACTIVE" });
-    } catch (e) {
-        return;
-    }
-    if (!statuses || Object.keys(statuses).length === 0)
-        return;
-
-    drmStatusEl.querySelectorAll(".drm-step").forEach((cell) => {
-        const st = statuses[cell.dataset.eme];
-        setEmeStatusField(cell, st);
-    });
-}
-
-function listenEmeStatus(tabId) {
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (sender.tab?.id !== tabId)
-            return;
-        if (message.type !== "EME_STATUS_REACTIVE")
-            return;
-
-        const payload = message.payload;
-        const cell = drmStatusEl.querySelector(`.drm-step[data-eme="${payload.type}"]`);
-        setEmeStatusField(cell, payload.data);
-    });
-}
-
-// --- Outdated warning -------------------------------------------------
-const outdatedWarn = document.getElementById("outdatedWarn");
-
-async function checkOutdated() {
-    try {
-        const isOutdated = await chrome.runtime.sendMessage({ type: "IS_OUTDATED" });
-        outdatedWarn.hidden = !isOutdated;
+        const statuses = await chrome.tabs.sendMessage(tabId, { type: "EME_STATUS_ACTIVE" });
+        if (!statuses || !Object.keys(statuses).length) return;
+        drmStatusEl.querySelectorAll(".drm-step").forEach(cell => {
+            setEmeStatusField(cell, statuses[cell.dataset.eme]);
+        });
     } catch (e) {}
 }
 
-// --- Text inputs ---
+function listenEmeStatus(tabId) {
+    if (tabId == null) return;
+    chrome.runtime.onMessage.addListener((message, sender) => {
+        if (sender.tab?.id !== tabId || message.type !== "EME_STATUS_REACTIVE") return;
+        const payload = message.payload;
+        const cell = drmStatusEl.querySelector('.drm-step[data-eme="' + payload.type + '"]');
+        if (cell) setEmeStatusField(cell, payload.data);
+    });
+}
+
 const exeName = document.getElementById("downloader-name");
 const addArgs = document.getElementById("downloader-args");
 exeName.addEventListener("input", () => saveSync({ exe_name: exeName.value }));
 addArgs.addEventListener("input", () => saveSync({ additional_args: addArgs.value }));
 
-// --- Comboboxes (native <select>s driven by the custom dropdown) ---
 const wvdCombo = document.getElementById("wvd-combobox");
 const remoteCombo = document.getElementById("remote-combobox");
 wvdCombo.addEventListener("change", () => saveSync({ selected: wvdCombo.value }));
@@ -245,32 +198,30 @@ remoteCombo.addEventListener("change", () => saveSync({ selected_remote_cdm: rem
 
 function populateSelect(sel, names, selected) {
     sel.innerHTML = "";
-    (names || []).forEach((n) => {
-        const o = document.createElement("option");
-        o.value = n;
-        o.textContent = n;
-        sel.append(o);
+    (names || []).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        sel.append(option);
     });
     if (selected != null) sel.value = selected;
     sel.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-// --- Device/remote actions (wired straight to the dropdown glyphs) ----
-const comboFor = (kind) => (kind === "wvd" ? wvdCombo : remoteCombo);
+const comboFor = kind => kind === "wvd" ? wvdCombo : remoteCombo;
 
 function openPicker(kind) {
     const mobile = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     const type = {
         wvd: mobile ? "OPEN_PICKER_WVD_MOBILE" : "OPEN_PICKER_WVD",
-        remote: mobile ? "OPEN_PICKER_REMOTE_MOBILE" : "OPEN_PICKER_REMOTE",
+        remote: mobile ? "OPEN_PICKER_REMOTE_MOBILE" : "OPEN_PICKER_REMOTE"
     }[kind];
-    if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
+    if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage)
         chrome.runtime.sendMessage({ type });
-    }
     window.close();
 }
 
-const sanitize = (s) => (s || "file").replace(/[\\/:*?"<>|]+/g, "_");
+const sanitize = s => (s || "file").replace(/[\\/:*?"<>|]+/g, "_");
 
 function saveBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
@@ -283,7 +234,6 @@ function saveBlob(blob, filename) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// WVD entries are stored as base64 of the binary; remote CDMs as JSON objects.
 function downloadEntry(kind, name) {
     const data = settings[name];
     if (!name || data == null) return;
@@ -301,44 +251,53 @@ function removeEntry(kind, name) {
     if (!name) return;
     const listKey = kind === "wvd" ? "devices" : "remote_cdms";
     const selKey = kind === "wvd" ? "selected" : "selected_remote_cdm";
-    const list = (settings[listKey] || []).filter((n) => n !== name);
+    const list = (settings[listKey] || []).filter(n => n !== name);
     const patch = { [listKey]: list };
     if (settings[selKey] === name) patch[selKey] = list[0] || "";
+
     delete settings[name];
     Object.assign(settings, patch);
-    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
+
+    if (typeof chrome !== "undefined" && chrome.storage?.sync) {
         chrome.storage.sync.set(patch);
-        chrome.storage.sync.remove(name); // drop the stored blob/object
+        chrome.storage.sync.remove(name);
     }
+
     populateSelect(comboFor(kind), list, patch[selKey] !== undefined ? patch[selKey] : settings[selKey]);
 }
 
-const closers = []; // close callbacks for every dropdown
+const closers = [];
 
-function glyph(kind, title) {
-    const el = document.createElement("span");
+function glyph(kind, key) {
+    const el = document.createElement("button");
+    el.type = "button";
     el.className = "dd-glyph " + (kind === "dl" ? "dl" : "rm");
-    el.title = title;
+    el.title = t(key, key);
+    el.setAttribute("aria-label", el.title);
     el.innerHTML = kind === "dl" ? ICON_DOWNLOAD : ICON_TRASH;
     return el;
 }
 
 function initDropdown(host) {
     const select = host.querySelector('[data-role="select"]');
-    const kind = host.dataset.kind; // "wvd" | "remote"
-    const addLabel = host.dataset.addLabel || "Choose file";
-    const emptyLabel = host.dataset.empty || "Nothing loaded";
+    const kind = host.dataset.kind;
+    const addLabel = () => t(host.dataset.i18nAdd, kind === "wvd" ? "Choose device file" : "Choose remote.json");
+    const emptyLabel = () => t(host.dataset.i18nEmpty, kind === "wvd" ? "No device loaded" : "No remote CDM loaded");
 
     const trigger = document.createElement("button");
     trigger.type = "button";
     trigger.className = "dd-trigger";
+
     const name = document.createElement("span");
     name.className = "dd-name";
+
     const actions = document.createElement("span");
     actions.className = "dd-actions";
-    const dl = glyph("dl", "Download");
-    const rm = glyph("rm", "Remove");
+
+    const dl = glyph("dl", "download");
+    const rm = glyph("rm", "remove");
     actions.append(dl, rm);
+
     const caret = document.createElement("span");
     caret.className = "dd-caret";
     caret.textContent = "▾";
@@ -349,52 +308,56 @@ function initDropdown(host) {
     host.append(trigger, menu);
 
     const selectedOption = () => select.options[select.selectedIndex] || null;
-    const hasOptions = () => select.options.length > 0;
-
-    function selectIndex(i) {
-        if (select.selectedIndex !== i) {
-            select.selectedIndex = i;
-            select.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-        refreshTrigger();
-    }
 
     function refreshTrigger() {
-        const opt = selectedOption();
-        const empty = !(hasOptions() && opt);
+        const option = selectedOption();
+        const empty = !option;
         trigger.classList.toggle("dd-empty", empty);
-        if (!empty) {
-            name.textContent = opt.textContent || opt.value;
-            name.classList.remove("placeholder");
-            dl.classList.remove("disabled");
-            rm.classList.remove("disabled");
-        } else {
-            name.textContent = emptyLabel;
+
+        dl.title = t("download", "Download");
+        rm.title = t("remove", "Remove");
+        dl.setAttribute("aria-label", dl.title);
+        rm.setAttribute("aria-label", rm.title);
+
+        if (empty) {
+            name.textContent = emptyLabel();
             name.classList.add("placeholder");
             dl.classList.add("disabled");
             rm.classList.add("disabled");
+        } else {
+            name.textContent = option.textContent || option.value;
+            name.classList.remove("placeholder");
+            dl.classList.remove("disabled");
+            rm.classList.remove("disabled");
         }
+    }
+
+    function close() {
+        menu.classList.remove("open");
+        trigger.classList.remove("open");
     }
 
     function buildMenu() {
         menu.innerHTML = "";
-        Array.from(select.options).forEach((opt, i) => {
+        Array.from(select.options).forEach((option, i) => {
             const item = document.createElement("button");
             item.type = "button";
             item.className = "dd-item" + (i === select.selectedIndex ? " selected" : "");
+
             const nm = document.createElement("span");
             nm.className = "dd-name";
-            nm.textContent = opt.textContent || opt.value;
+            nm.textContent = option.textContent || option.value;
+
             const acts = document.createElement("span");
             acts.className = "dd-actions";
-            const idl = glyph("dl", "Download");
-            const irm = glyph("rm", "Remove");
+            const idl = glyph("dl", "download");
+            const irm = glyph("rm", "remove");
             acts.append(idl, irm);
             item.append(nm, acts);
 
-            item.addEventListener("click", () => { selectIndex(i); close(); });
-            idl.addEventListener("click", (e) => { e.stopPropagation(); downloadEntry(kind, opt.value); close(); });
-            irm.addEventListener("click", (e) => { e.stopPropagation(); removeEntry(kind, opt.value); close(); });
+            item.addEventListener("click", () => { select.selectedIndex = i; select.dispatchEvent(new Event("change", { bubbles: true })); close(); });
+            idl.addEventListener("click", e => { e.stopPropagation(); downloadEntry(kind, option.value); close(); });
+            irm.addEventListener("click", e => { e.stopPropagation(); removeEntry(kind, option.value); close(); });
             menu.append(item);
         });
 
@@ -404,32 +367,33 @@ function initDropdown(host) {
         const plus = document.createElement("span");
         plus.className = "plus";
         plus.textContent = "+";
-        add.append(plus, document.createTextNode(addLabel));
+        add.append(plus, document.createTextNode(addLabel()));
         add.addEventListener("click", () => openPicker(kind));
         menu.append(add);
     }
 
     function open() {
-        closers.forEach((c) => c());
+        closers.forEach(c => c());
         buildMenu();
         menu.classList.add("open");
         trigger.classList.add("open");
     }
-    function close() {
-        menu.classList.remove("open");
-        trigger.classList.remove("open");
-    }
-    closers.push(close);
 
-    trigger.addEventListener("click", (e) => {
+    host.refreshUi = () => {
+        refreshTrigger();
+        if (menu.classList.contains("open")) buildMenu();
+    };
+
+    closers.push(close);
+    trigger.addEventListener("click", e => {
         e.stopPropagation();
         menu.classList.contains("open") ? close() : open();
     });
-    dl.addEventListener("click", (e) => {
+    dl.addEventListener("click", e => {
         e.stopPropagation();
         if (!dl.classList.contains("disabled")) downloadEntry(kind, select.value);
     });
-    rm.addEventListener("click", (e) => {
+    rm.addEventListener("click", e => {
         e.stopPropagation();
         if (!rm.classList.contains("disabled")) removeEntry(kind, select.value);
     });
@@ -444,78 +408,67 @@ function initDropdown(host) {
 }
 
 document.querySelectorAll("[data-dropdown]").forEach(initDropdown);
-document.addEventListener("click", () => closers.forEach((c) => c()));
+document.addEventListener("click", () => closers.forEach(c => c()));
 
-// --- Keys: scrollable list of expandable entries (newest first) -------
 const keyContainer = document.getElementById("key-container");
 const openHistoryBtn = document.getElementById("openHistory");
 
 function keysEmptyState() {
-    keyContainer.innerHTML = '<div class="empty" data-i18n="noKeys">' + (window.WP2I18n?.t("noKeys") || "no keys captured") + '</div>';
+    keyContainer.innerHTML = '<div class="empty" data-i18n="noKeys">' + t("noKeys", "No keys captured") + "</div>";
 }
 
 function renderInto(entry) {
     const empty = keyContainer.querySelector(".empty");
     if (empty) empty.remove();
-    if (entry && entry.pssh_data) {
-        const existing = keyContainer.querySelector(
-            '.key-item[data-pssh="' + CSS.escape(entry.pssh_data) + '"]'
-        );
+
+    if (entry?.pssh_data) {
+        const existing = keyContainer.querySelector('.key-item[data-pssh="' + CSS.escape(entry.pssh_data) + '"]');
         if (existing) existing.remove();
     }
     keyContainer.prepend(renderKeyEntry(entry, settings));
 }
 
 function loadKeys() {
-    chrome.storage.local.get(null, (map) => {
+    chrome.storage.local.get(null, map => {
         const list = entriesFromMap(map);
         keyContainer.innerHTML = "";
-
-        const now = new Date().getTime();
-        const recentKeys = list.filter(e => (now - e.timestamp) / 1_000 <= 5 * 60);
-
-        if (!recentKeys.length) {
-            keysEmptyState();
-            return;
-        }
-        recentKeys.forEach((e) => keyContainer.append(renderKeyEntry(e, settings)));
+        const now = Date.now();
+        const recent = list.filter(e => (now - e.timestamp) / 1000 <= 5 * 60);
+        if (!recent.length) return keysEmptyState();
+        recent.forEach(e => keyContainer.append(renderKeyEntry(e, settings)));
     });
 }
 
 function onStorageChanged(changes, areaName) {
     if (areaName === "local") {
-        for (const [pssh, change] of Object.entries(changes)) {
-            if (change.newValue) {
-                renderInto(change.newValue);
-            } else {
-                const el = keyContainer.querySelector('.key-item[data-pssh="' + CSS.escape(pssh) + '"]');
-                if (el) el.remove();
-            }
-        }
+        Object.entries(changes).forEach(([pssh, change]) => {
+            if (change.newValue) renderInto(change.newValue);
+            else keyContainer.querySelector('.key-item[data-pssh="' + CSS.escape(pssh) + '"]')?.remove();
+        });
         if (!keyContainer.querySelector(".key-item")) keysEmptyState();
     } else if (areaName === "sync") {
-        for (const [key, change] of Object.entries(changes)) {
-            settings[key] = change.newValue;
-        }
+        Object.entries(changes).forEach(([key, change]) => settings[key] = change.newValue);
+        refreshCommands();
     }
 }
 
 function loadSettings() {
-    chrome.storage.sync.get(null, (s) => {
-        settings = s || {};
+    chrome.storage.sync.get(null, stored => {
+        settings = stored || {};
         enabled.checked = !!(settings.enabled ?? true);
         applyEnabled();
         applyTheme(!!settings.dark_mode);
-        if (settings.device_type === "REMOTE") remoteSelect.checked = true;
-        else wvdSelect.checked = true;
+        remoteSelect.checked = settings.device_type === "REMOTE";
+        wvdSelect.checked = !remoteSelect.checked;
         applyDeviceType();
-        setServerCert(!!(settings.server_cert ?? false));
+        setServerCert(!!settings.server_cert);
         setProxyMode(settings.proxy_mode ?? "event");
         exeName.value = settings.exe_name || "";
         addArgs.value = settings.additional_args || "";
         setPackager(!!settings.use_shaka);
         setQuotes(!!settings.use_single_quotes);
         setSaveName(settings.save_name || "none");
+        passHeaders.checked = settings.pass_headers !== false;
         cmdSection.classList.toggle("collapsed", settings.command_options_collapsed !== false);
         populateSelect(wvdCombo, settings.devices, settings.selected);
         populateSelect(remoteCombo, settings.remote_cdms, settings.selected_remote_cdm);
@@ -525,20 +478,17 @@ function loadSettings() {
     });
 }
 
-if (openHistoryBtn) {
-    openHistoryBtn.addEventListener("click", () => {
-        const url =
-            typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL
-                ? chrome.runtime.getURL("ui/history.html")
-                : "history.html";
-        if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.create) {
-            chrome.tabs.create({ url });
-        } else {
-            window.open(url, "_blank");
-        }
-        window.close();
-    });
-}
+openHistoryBtn.addEventListener("click", () => {
+    const url = chrome.runtime.getURL("ui/history.html");
+    chrome.tabs.create({ url }, () => window.close());
+});
+
+window.addEventListener("wp2-language-change", () => {
+    document.querySelectorAll("[data-dropdown]").forEach(host => host.refreshUi?.());
+    applyEnabled();
+    applyCompat();
+    loadKeys();
+});
 
 async function boot() {
     if (window.WP2I18n?.ready) await window.WP2I18n.ready;
@@ -546,14 +496,14 @@ async function boot() {
         chrome.storage.onChanged.addListener(onStorageChanged);
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         loadSettings();
-        listenEmeStatus(tab.id);
-        refreshEmeStatuses(tab.id);
-        checkOutdated(tab.id);
+        if (tab?.id != null) {
+            listenEmeStatus(tab.id);
+            refreshEmeStatuses(tab.id);
+        }
     } else {
         booting = false;
         keysEmptyState();
     }
 }
 
-//window.__boot = boot;
 boot();

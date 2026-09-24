@@ -10,6 +10,7 @@ const wvdSelect = document.getElementById("wvd_select");
 const remoteSelect = document.getElementById("remote_select");
 const wvdPanel = document.getElementById("wvd");
 const remotePanel = document.getElementById("remote");
+const passHeaders = document.getElementById("passHeaders");
 let booting = true;
 let settings = {};
 
@@ -74,7 +75,7 @@ const onProxyModeChange = () => { saveSync({ proxy_mode: currentProxyMode() }); 
 function applyEnabled() {
     const on = enabled.checked;
     statePill.classList.toggle("on", on);
-    stateText.textContent = on ? "enabled" : "disabled";
+    stateText.textContent = on ? (window.WP2I18n?.t("enabledState") || "enabled") : (window.WP2I18n?.t("disabled") || "disabled");
 }
 
 enabled.addEventListener("change", () => {
@@ -166,6 +167,7 @@ function setSaveName(mode) {
 
 const currentSaveName = () => (saveTitle.checked ? "title" : saveUrl.checked ? "url" : "none");
 const onSaveNameChange = () => { saveSync({ save_name: currentSaveName() }); refreshCommands(); };
+passHeaders.addEventListener("change", () => { saveSync({ pass_headers: passHeaders.checked }); refreshCommands(); });
 [saveNone, saveTitle, saveUrl].forEach((r) => r.addEventListener("change", onSaveNameChange));
 
 // --- Collapsible Command Options ---
@@ -449,7 +451,7 @@ const keyContainer = document.getElementById("key-container");
 const openHistoryBtn = document.getElementById("openHistory");
 
 function keysEmptyState() {
-    keyContainer.innerHTML = '<div class="empty">no keys captured</div>';
+    keyContainer.innerHTML = '<div class="empty" data-i18n="noKeys">' + (window.WP2I18n?.t("noKeys") || "no keys captured") + '</div>';
 }
 
 function renderInto(entry) {
@@ -539,6 +541,7 @@ if (openHistoryBtn) {
 }
 
 async function boot() {
+    if (window.WP2I18n?.ready) await window.WP2I18n.ready;
     if (typeof chrome !== "undefined" && chrome.storage) {
         chrome.storage.onChanged.addListener(onStorageChanged);
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

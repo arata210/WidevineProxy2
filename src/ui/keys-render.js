@@ -86,10 +86,12 @@ export function buildCommand(entry, settings, manifestIndex) {
     if (name)
         parts.push("--save-name " + q(name));
 
-    const headers = manifest.headers || {};
-    Object.keys(headers).forEach((h) => {
-        parts.push("-H " + q(h + ": " + headers[h]));
-    });
+    if (settings.pass_headers !== false) {
+        const headers = manifest.headers || {};
+        Object.keys(headers).forEach((h) => {
+            parts.push("-H " + q(h + ": " + headers[h]));
+        });
+    }
 
     keyLines(entry).forEach((kv) => parts.push("--key " + kv));
 

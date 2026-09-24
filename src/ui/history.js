@@ -29,19 +29,18 @@ function render() {
     const shown = entries.filter(matches);
     listEl.innerHTML = "";
 
-    totalCountEl.textContent =
-        entries.length + " entr" + (entries.length === 1 ? "y" : "ies") + " stored";
+    totalCountEl.textContent = entries.length + " " + (window.WP2I18n?.t("entriesStored") || "entries stored");
 
     if (!entries.length) {
         resultCountEl.textContent = "";
-        listEl.innerHTML = '<div class="hist-empty">No keys have been captured yet.</div>';
+        listEl.innerHTML = '<div class="hist-empty">' + (window.WP2I18n?.t("noHistory") || "No keys have been captured yet.") + '</div>';
         return;
     }
 
     resultCountEl.innerHTML = "Showing <b>" + shown.length + "</b> of " + entries.length;
 
     if (!shown.length) {
-        listEl.innerHTML = '<div class="hist-empty">No entries match your search.</div>';
+        listEl.innerHTML = '<div class="hist-empty">' + (window.WP2I18n?.t("noMatch") || "No entries match your search.") + '</div>';
         return;
     }
 
@@ -99,7 +98,7 @@ exportBtn.addEventListener("click", () => {
 clearAllBtn.addEventListener("click", () => {
     if (!entries.length)
         return;
-    if (!window.confirm("Delete all " + entries.length + " stored key entries?"))
+    if (!window.confirm((window.WP2I18n?.t("confirmClear") || "Delete all {n} stored key entries?").replace("{n}", entries.length)))
         return;
     chrome.storage.local.clear(() => { entries = []; render(); });
 });
@@ -124,7 +123,8 @@ function isolateZoom() {
     });
 }
 
-function boot() {
+async function boot() {
+    if (window.WP2I18n?.ready) await window.WP2I18n.ready;
     if (typeof chrome !== "undefined" && chrome.storage) {
         isolateZoom();
         chrome.storage.onChanged.addListener(onStorageChanged);

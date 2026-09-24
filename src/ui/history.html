@@ -10,27 +10,28 @@
 <body>
 <div class="page">
     <header class="page-head">
-        <h1>Key History</h1>
+        <div class="history-title-row"><h1 data-i18n="keyHistory">Key History</h1><select id="languageSelect" class="language-select" aria-label="Language"><option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option></select></div>
         <span class="sub" id="totalCount">0 entries stored</span>
     </header>
 
     <div class="toolbar">
-        <input type="text" id="search" class="search" placeholder="Search URL, PSSH, kid/key, command…">
+        <input type="text" id="search" class="search" placeholder="Search URL, PSSH, kid/key, command…" data-i18n-placeholder="searchPlaceholder">
         <div class="filters" id="typeFilter">
-            <button type="button" class="filter-btn active" data-type="all">All</button>
+            <button type="button" class="filter-btn active" data-type="all" data-i18n="all">All</button>
             <button type="button" class="filter-btn" data-type="DASH">DASH</button>
             <button type="button" class="filter-btn" data-type="HLS">HLS</button>
             <button type="button" class="filter-btn" data-type="MSS">MSS</button>
-            <button type="button" class="filter-btn" data-type="OTHER">Other</button>
+            <button type="button" class="filter-btn" data-type="OTHER" data-i18n="other">Other</button>
         </div>
-        <button type="button" id="exportAll">Export</button>
-        <button type="button" id="clearAll" class="danger">Clear all</button>
+        <button type="button" id="exportAll" data-i18n="export">Export</button>
+        <button type="button" id="clearAll" class="danger" data-i18n="clearAll">Clear all</button>
     </div>
 
     <div class="result-count" id="resultCount"></div>
     <div id="history-list"></div>
 </div>
 
-<script src="history.min.js"></script>
+<script src="i18n.js"></script>
+<script src="history.js"></script>
 </body>
 </html>

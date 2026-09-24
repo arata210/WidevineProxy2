@@ -10,12 +10,21 @@
 <body>
 <div class="page">
     <header class="page-head">
-        <div class="history-title-row"><h1 data-i18n="keyHistory">Key History</h1><select id="languageSelect" class="language-select" aria-label="Language"><option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option></select></div>
-        <span class="sub" id="totalCount">0 entries stored</span>
+        <div>
+            <div class="history-title-row">
+                <h1 data-i18n="keyHistory">Key history</h1>
+                <select id="languageSelect" class="language-select" aria-label="Language">
+                    <option value="en">English</option>
+                    <option value="zh">中文</option>
+                    <option value="ja">日本語</option>
+                </select>
+            </div>
+            <span class="sub" id="totalCount">0 entries stored</span>
+        </div>
     </header>
 
     <div class="toolbar">
-        <input type="text" id="search" class="search" placeholder="Search URL, PSSH, kid/key, command…" data-i18n-placeholder="searchPlaceholder">
+        <input type="text" id="search" class="search" placeholder="Search URL, PSSH, KID/key, command…" data-i18n-placeholder="searchPlaceholder">
         <div class="filters" id="typeFilter">
             <button type="button" class="filter-btn active" data-type="all" data-i18n="all">All</button>
             <button type="button" class="filter-btn" data-type="DASH">DASH</button>
@@ -30,7 +39,6 @@
     <div class="result-count" id="resultCount"></div>
     <div id="history-list"></div>
 </div>
-
 <script src="i18n.js"></script>
 <script type="module" src="history.js"></script>
 </body>

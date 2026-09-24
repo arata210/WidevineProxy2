@@ -3,45 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WidevineProxy</title>
+    <title>WidevineProxy2</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 <div class="app">
     <header class="titlebar">
-        <h1><a class="title-link" href="https://github.com/DevLARLEY/WidevineProxy2" target="_blank" rel="noopener noreferrer">WidevineProxy2</a><span class="version" id="version"></span><a class="byline" href="https://github.com/DevLARLEY" target="_blank" rel="noopener noreferrer">by DevLARLEY</a></h1>
-        <div class="titlebar-tools"><select id="languageSelect" class="language-select" aria-label="Language"><option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option></select></div>
-        <div class="titlebar-status">
+        <div class="brand">
+            <h1>WidevineProxy2</h1>
+            <span class="version" id="version"></span>
+        </div>
+        <div class="titlebar-tools">
+            <select id="languageSelect" class="language-select" aria-label="Language">
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="ja">日本語</option>
+            </select>
             <div class="state" id="statePill">
-                <span class="dot"></span><span id="stateText">disabled</span>
+                <span class="dot"></span>
+                <span id="stateText" data-i18n="disabled">Disabled</span>
             </div>
-            <a class="state warn" id="outdatedWarn"
-               href="https://github.com/DevLARLEY/WidevineProxy2/releases/latest"
-               target="_blank" rel="noopener noreferrer" title="A newer version is available" hidden>
-                ⚠ update
-            </a>
         </div>
     </header>
 
-    <!-- Settings -->
     <section class="section">
-        <h2 data-i18n="settings">Settings</h2>
+        <div class="section-head"><h2 data-i18n="settings">Settings</h2></div>
         <div id="settings">
-            <div class="opt-inline">
-                <div class="opt-row">
+            <div class="settings-top">
+                <label class="check-card">
                     <input type="checkbox" id="enabled">
-                    <label for="enabled" data-i18n="enabled">Enabled</label>
-                </div>
-                <div class="opt-row">
-                    <label class="switch">
+                    <span><strong data-i18n="enabled">Enabled</strong></span>
+                </label>
+                <label class="check-card">
+                    <span class="switch">
                         <input type="checkbox" id="darkModeToggle">
                         <span class="slider"></span>
-                    </label>
-                    <label for="darkModeToggle" data-i18n="darkMode">Dark mode</label>
-                </div>
+                    </span>
+                    <span><strong data-i18n="darkMode">Dark mode</strong></span>
+                </label>
             </div>
-            <div class="opt-row toggle-row">
-                <span class="minilabel inline set-label" data-i18n="proxyMode">Proxy mode</span>
+
+            <div class="setting-row">
+                <span class="setting-label" data-i18n="proxyMode">Proxy mode</span>
                 <div class="segmented segmented-sm" data-proxy>
                     <input type="radio" name="proxy_mode" id="proxy_event" value="event" checked>
                     <label for="proxy_event" data-i18n="event">Event</label>
@@ -49,8 +52,9 @@
                     <label for="proxy_property" data-i18n="property">Property</label>
                 </div>
             </div>
-            <div class="opt-row toggle-row">
-                <span class="minilabel inline set-label" data-i18n="serviceCert">Service cert</span>
+
+            <div class="setting-row">
+                <span class="setting-label" data-i18n="serviceCert">Service certificate</span>
                 <div class="segmented segmented-sm" data-cert title="When to encrypt the client id">
                     <input type="radio" name="server_cert" id="cert_never" value="never" checked>
                     <label for="cert_never" data-i18n="never">Never</label>
@@ -58,11 +62,12 @@
                     <label for="cert_when" data-i18n="whenUsed">When used</label>
                 </div>
             </div>
-            <div id="type-select">
-                <a class="minilabel" data-i18n="deviceType">Device Type</a>
+
+            <div class="setting-stack">
+                <span class="setting-label" data-i18n="deviceType">Device type</span>
                 <div class="segmented">
                     <input type="radio" id="wvd_select" name="cdm_type" value="wvd" checked>
-                    <label for="wvd_select" data-i18n="widevineDevice">Widevine Device</label>
+                    <label for="wvd_select" data-i18n="widevineDevice">Widevine device</label>
                     <input type="radio" id="remote_select" name="cdm_type" value="remote">
                     <label for="remote_select" data-i18n="remoteCdm">Remote CDM</label>
                 </div>
@@ -70,23 +75,20 @@
         </div>
     </section>
 
-    <!-- Widevine Device -->
-    <section class="section device-section" id="wvd">
-        <div class="dropdown" data-dropdown data-kind="wvd" data-add-label="Choose File" data-i18n-add="chooseFile" data-i18n-empty="noDeviceLoaded">
+    <section class="section compact-section device-section" id="wvd">
+        <div class="dropdown" data-dropdown data-kind="wvd" data-i18n-add="chooseFile" data-i18n-empty="noDeviceLoaded">
             <select id="wvd-combobox" class="dd-native" data-role="select"></select>
         </div>
     </section>
 
-    <!-- Remote CDM -->
-    <section class="section device-section" id="remote">
-        <div class="dropdown" data-dropdown data-kind="remote" data-add-label="Choose remote.json" data-i18n-add="chooseRemote" data-i18n-empty="noRemoteLoaded">
+    <section class="section compact-section device-section" id="remote">
+        <div class="dropdown" data-dropdown data-kind="remote" data-i18n-add="chooseRemote" data-i18n-empty="noRemoteLoaded">
             <select id="remote-combobox" class="dd-native" data-role="select"></select>
         </div>
     </section>
 
-    <!-- DRM status -->
-    <section class="section" id="drm-status-section">
-        <h2 data-i18n="drmStatus">DRM Status</h2>
+    <section class="section">
+        <div class="section-head"><h2 data-i18n="drmStatus">DRM status</h2></div>
         <div id="drmStatus">
             <div class="drm-progress">
                 <div class="drm-step pending" data-eme="EME_CREATE_MEDIA_KEYS"></div>
@@ -105,12 +107,11 @@
         </div>
     </section>
 
-    <!-- Command options -->
     <section class="section collapsible collapsed" id="command-options">
-        <h2 class="collapse-head" data-i18n="commandOptions">Command Options<span class="collapse-caret">▾</span></h2>
+        <h2 class="collapse-head" data-i18n="commandOptions">Command options <span class="collapse-caret">▾</span></h2>
         <div class="collapse-body">
-            <div class="opt-row toggle-row">
-                <span class="minilabel inline row-label" data-i18n="packager">Packager</span>
+            <div class="setting-row">
+                <span class="setting-label" data-i18n="packager">Packager</span>
                 <div class="segmented segmented-sm" data-shaka>
                     <input type="radio" name="packager" id="pkg_mp4" value="mp4decrypt" checked>
                     <label for="pkg_mp4">mp4decrypt</label>
@@ -118,8 +119,9 @@
                     <label for="pkg_shaka">shaka-packager</label>
                 </div>
             </div>
-            <div class="opt-row toggle-row">
-                <span class="minilabel inline row-label" data-i18n="quotes">Quotes</span>
+
+            <div class="setting-row">
+                <span class="setting-label" data-i18n="quotes">Quotes</span>
                 <div class="segmented segmented-sm" data-quotes>
                     <input type="radio" name="quote_style" id="quote_cmd" value="cmd" checked>
                     <label for="quote_cmd">cmd</label>
@@ -127,17 +129,19 @@
                     <label for="quote_bash">bash</label>
                 </div>
             </div>
-            <div class="opt-row toggle-row">
-                <span class="minilabel inline row-label" data-i18n="saveName">Save name</span>
+
+            <div class="setting-row">
+                <span class="setting-label" data-i18n="saveName">Save name</span>
                 <div class="segmented segmented-sm" data-savename>
                     <input type="radio" name="save_name" id="save_none" value="none" checked>
-                    <label for="save_none">(none)</label>
+                    <label for="save_none" data-i18n="none">None</label>
                     <input type="radio" name="save_name" id="save_title" value="title">
-                    <label for="save_title">title</label>
+                    <label for="save_title" data-i18n="title">Title</label>
                     <input type="radio" name="save_name" id="save_url" value="url">
-                    <label for="save_url">url</label>
+                    <label for="save_url" data-i18n="url">URL</label>
                 </div>
             </div>
+
             <div class="field-split">
                 <label class="field-col">
                     <span class="minilabel" data-i18n="executableName">Executable name</span>
@@ -148,15 +152,24 @@
                     <input type="text" class="text-box" id="downloader-args" placeholder="-M format=mkv" data-i18n-placeholder="argsPlaceholder">
                 </label>
             </div>
-            <div class="opt-row command-header-option"><input type="checkbox" id="passHeaders"><label for="passHeaders" data-i18n="passHeaders">Pass Headers to N_m3u8DL-RE</label></div>
+
+            <label class="command-option-card">
+                <input type="checkbox" id="passHeaders">
+                <span>
+                    <strong data-i18n="passHeaders">Pass headers to N_m3u8DL-RE</strong>
+                    <small>manifest.headers → generated command only</small>
+                </span>
+            </label>
         </div>
     </section>
+
     <section class="section">
-        <h2 data-i18n="keysRecent">Keys (past 5 min.)
+        <div class="section-head">
+            <h2 data-i18n="keysRecent">Keys (last 5 min.)</h2>
             <button type="button" id="openHistory" class="head-btn" data-i18n="history">History</button>
-        </h2>
+        </div>
         <div id="key-container">
-            <div class="empty" data-i18n="noKeys">no keys captured</div>
+            <div class="empty" data-i18n="noKeys">No keys captured</div>
         </div>
     </section>
 </div>

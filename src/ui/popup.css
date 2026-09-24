@@ -14,7 +14,7 @@
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--bg)}
 body{
-    margin:0; width:640px; max-width:100vw; max-height:100vh; overflow-y:auto;
+    margin:0; width:680px; min-width:680px; max-height:100vh; overflow-y:auto;
     font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans","Noto Sans CJK JP","Noto Sans SC",sans-serif;
     font-size:14px; line-height:1.45; background:radial-gradient(circle at top right,rgba(37,99,235,.08),transparent 34%),var(--bg); color:var(--text);
 }
@@ -125,7 +125,3 @@ input[type="checkbox"]:checked::after{content:"";width:8px;height:12px;border:so
 .kv-input{overflow:hidden;text-overflow:ellipsis}
 .kv-copy{min-width:62px;min-height:38px;padding:6px 10px;font-size:11px}.kv-copy.copied{color:var(--success);border-color:var(--success)}
 
-@media(max-width:700px){
-    body{width:100%}.settings-top,.field-split{grid-template-columns:1fr}
-    .setting-row{align-items:flex-start;flex-direction:column;gap:6px}.setting-label{flex-basis:auto}.segmented{width:100%}
-}

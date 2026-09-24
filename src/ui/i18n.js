@@ -72,7 +72,13 @@
     function apply(lang) {
         current = dict[lang] ? lang : "en";
         document.documentElement.lang = current === "zh" ? "zh-CN" : current === "ja" ? "ja" : "en";
-        document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const textNode = Array.from(el.childNodes).find(
+                node => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+            );
+            if (textNode) textNode.textContent = t(el.dataset.i18n) + " ";
+            else el.textContent = t(el.dataset.i18n);
+        });
         document.querySelectorAll("[data-i18n-placeholder]").forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
         document.querySelectorAll("[data-i18n-title]").forEach(el => el.title = t(el.dataset.i18nTitle));
         const select = document.getElementById("languageSelect");

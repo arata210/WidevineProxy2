@@ -269,8 +269,7 @@ function removeEntry(kind, name) {
 const closers = [];
 
 function glyph(kind, key) {
-    const el = document.createElement("button");
-    el.type = "button";
+    const el = document.createElement("span");
     el.className = "dd-glyph " + (kind === "dl" ? "dl" : "rm");
     el.title = t(key, key);
     el.setAttribute("aria-label", el.title);

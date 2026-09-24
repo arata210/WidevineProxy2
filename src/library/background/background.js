@@ -23,26 +23,6 @@ const SCRIPT_CONFIGS = [
     }
 ];
 
-let isOutdated = false;
-
-async function setIsOutdated() {
-    const projectBase = "https://github.com/DevLARLEY/WidevineProxy2/releases/"
-
-    const response = await fetch(projectBase + "latest");
-    const lastestVersion = response.url.replace(projectBase + "tag/v", "");
-
-    let currentVersion = "";
-    try {
-        currentVersion = chrome.runtime.getManifest().version;
-    } catch (e) {}
-
-    console.log("latest", lastestVersion, "current", currentVersion);
-
-    isOutdated =
-        parseInt(lastestVersion.replaceAll(".", "")) >
-        parseInt(currentVersion.replaceAll(".", ""));
-}
-
 let registrationPromise = null;
 
 async function getEnabledState() {
@@ -185,9 +165,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         case "OPEN_PICKER_REMOTE_MOBILE":
             openPicker("picker/remote/filePicker.html", true);
-            break;
-        case "IS_OUTDATED":
-            sendResponse(isOutdated);
             break;
     }
 });

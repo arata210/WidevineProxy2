@@ -9,19 +9,16 @@ const exportBtn = document.getElementById("exportAll");
 const totalCountEl = document.getElementById("totalCount");
 const resultCountEl = document.getElementById("resultCount");
 
-function deleteEntry(pssh) {
-    if (pssh) chrome.storage.local.remove(pssh, loadKeys);
-}
-
 let entries = [];
 let settings = {};
 let query = "";
 let typeFilter = "all";
 
+const t = (key, fallback) => window.WP2I18n?.t(key) || fallback || key;
+
 function matches(entry) {
     const type = normalizeType((manifests(entry)[0] || {}).type);
-    if (typeFilter !== "all" && type !== typeFilter)
-        return false;
+    if (typeFilter !== "all" && type !== typeFilter) return false;
     return !(query && searchText(entry).indexOf(query) === -1);
 }
 
@@ -29,59 +26,62 @@ function render() {
     const shown = entries.filter(matches);
     listEl.innerHTML = "";
 
-    totalCountEl.textContent = entries.length + " " + (window.WP2I18n?.t("entriesStored") || "entries stored");
+    totalCountEl.textContent = t("entriesStored", "{n} entries stored").replace("{n}", entries.length);
+    resultCountEl.textContent = entries.length
+        ? t("showingOf", "Showing {shown} of {total}")
+            .replace("{shown}", shown.length)
+            .replace("{total}", entries.length)
+        : "";
 
     if (!entries.length) {
-        resultCountEl.textContent = "";
-        listEl.innerHTML = '<div class="hist-empty">' + (window.WP2I18n?.t("noHistory") || "No keys have been captured yet.") + '</div>';
+        listEl.innerHTML = '<div class="hist-empty">' + t("noHistory", "No keys have been captured yet.") + "</div>";
         return;
     }
-
-    resultCountEl.innerHTML = "Showing <b>" + shown.length + "</b> of " + entries.length;
 
     if (!shown.length) {
-        listEl.innerHTML = '<div class="hist-empty">' + (window.WP2I18n?.t("noMatch") || "No entries match your search.") + '</div>';
+        listEl.innerHTML = '<div class="hist-empty">' + t("noMatch", "No entries match your search.") + "</div>";
         return;
     }
 
-    shown.forEach((e) => listEl.append(renderKeyEntry(e, settings, (pssh) => deleteEntry(pssh))));
+    shown.forEach(entry => listEl.append(
+        renderKeyEntry(entry, settings, pssh => deleteEntry(pssh))
+    ));
+}
+
+function deleteEntry(pssh) {
+    if (pssh) chrome.storage.local.remove(pssh, loadKeys);
 }
 
 function loadKeys() {
-    chrome.storage.local.get(null, (map) => {
+    chrome.storage.local.get(null, map => {
         entries = entriesFromMap(map);
         render();
     });
 }
 
-function loadSettings(cb) {
-    chrome.storage.sync.get(null, (s) => {
-        settings = s || {};
+function loadSettings() {
+    chrome.storage.sync.get(null, stored => {
+        settings = stored || {};
         root.setAttribute("data-theme", settings.dark_mode ? "dark" : "light");
-        cb && cb();
+        render();
     });
 }
 
-// Search
 searchEl.addEventListener("input", () => {
     query = searchEl.value.trim().toLowerCase();
     render();
 });
 
-// Type filter
-typeFilterEl.addEventListener("click", (e) => {
+typeFilterEl.addEventListener("click", e => {
     const btn = e.target.closest(".filter-btn");
-    if (!btn)
-        return;
+    if (!btn) return;
     typeFilter = btn.dataset.type;
-    typeFilterEl.querySelectorAll(".filter-btn").forEach((b) =>
-        b.classList.toggle("active", b === btn)
-    );
+    typeFilterEl.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b === btn));
     render();
 });
 
 exportBtn.addEventListener("click", () => {
-    chrome.storage.local.get(null, (map) => {
+    chrome.storage.local.get(null, map => {
         const blob = new Blob([JSON.stringify(map)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -94,45 +94,34 @@ exportBtn.addEventListener("click", () => {
     });
 });
 
-// Clear all - wipes chrome.storage.local
 clearAllBtn.addEventListener("click", () => {
-    if (!entries.length)
-        return;
-    if (!window.confirm((window.WP2I18n?.t("confirmClear") || "Delete all {n} stored key entries?").replace("{n}", entries.length)))
-        return;
-    chrome.storage.local.clear(() => { entries = []; render(); });
+    if (!entries.length) return;
+    const message = t("confirmClear", "Delete all {n} stored key entries?")
+        .replace("{n}", entries.length);
+    if (!window.confirm(message)) return;
+    chrome.storage.local.clear(() => {
+        entries = [];
+        render();
+    });
 });
 
-// Live-update while the page is open.
-function onStorageChanged(changes, areaName) {
-    if (areaName === "local") loadKeys();
-    else if (areaName === "sync") loadSettings(render);
-}
-
-function isolateZoom() {
-    if (typeof chrome === "undefined" || !chrome.tabs || !chrome.tabs.getCurrent)
-        return;
-    chrome.tabs.getCurrent((tab) => {
-        if (chrome.runtime.lastError || !tab || tab.id == null)
-            return;
-        chrome.tabs.setZoom(tab.id, 0, () => {
-            if (chrome.runtime.lastError)
-                return;
-            chrome.tabs.setZoomSettings(tab.id, { scope: "per-tab" });
-        });
+if (typeof chrome !== "undefined" && chrome.storage?.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === "local") loadKeys();
+        else if (areaName === "sync") loadSettings();
     });
 }
+
+window.addEventListener("wp2-language-change", render);
 
 async function boot() {
     if (window.WP2I18n?.ready) await window.WP2I18n.ready;
     if (typeof chrome !== "undefined" && chrome.storage) {
-        isolateZoom();
-        chrome.storage.onChanged.addListener(onStorageChanged);
-        loadSettings(loadKeys);
+        loadSettings();
+        loadKeys();
     } else {
         render();
     }
 }
 
-//window.__boot = boot;
 boot();

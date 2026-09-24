@@ -11,9 +11,7 @@
     "clipboardWrite",
     "scripting"
   ],
-  "host_permissions": [
-    "*://*/*"
-  ],
+  "host_permissions": ["*://*/*"],
   "action": {
     "default_popup": "ui/popup.html",
     "default_icon": {
@@ -32,15 +30,5 @@
   "background": {
     "service_worker": "library/background/bundle.min.js"
   },
-  "content_scripts": [],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "DevLARLEY@larley.dev",
-      "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
-      }
-    }
-  }
+  "content_scripts": []
 }

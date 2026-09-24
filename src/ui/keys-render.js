@@ -23,7 +23,7 @@ export function keyLines(entry) {
 }
 function shellQuote(value, single) {
     const s = String(value == null ? "" : value);
-    return single ? "'" + s.replace(/'/g, "'\\''") + "'" : '"' + s.replace(/"/g, "\\"") + '"';
+    return single ? "'" + s.replace(/'/g, "'\\''") + "'" : '"' + s.replace(/"/g, '\\"') + '"';
 }
 function sanitizeName(s) {
     let name = String(s == null ? "" : s).normalize("NFC")

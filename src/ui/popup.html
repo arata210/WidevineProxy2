@@ -9,20 +9,12 @@
 <body>
 <div class="app">
     <header class="titlebar">
-        <div class="brand">
-            <h1>WidevineProxy2</h1>
-            <span class="version" id="version"></span>
-        </div>
+        <div class="brand"><h1>WidevineProxy2</h1><span class="version" id="version"></span></div>
         <div class="titlebar-tools">
             <select id="languageSelect" class="language-select" aria-label="Language">
-                <option value="en">English</option>
-                <option value="zh">中文</option>
-                <option value="ja">日本語</option>
+                <option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option>
             </select>
-            <div class="state" id="statePill">
-                <span class="dot"></span>
-                <span id="stateText" data-i18n="disabled">Disabled</span>
-            </div>
+            <div class="state" id="statePill"><span class="dot"></span><span id="stateText" data-i18n="disabled">Disabled</span></div>
         </div>
     </header>
 
@@ -30,46 +22,31 @@
         <div class="section-head"><h2 data-i18n="settings">Settings</h2></div>
         <div id="settings">
             <div class="settings-top">
+                <label class="check-card"><input type="checkbox" id="enabled"><span><strong data-i18n="enabled">Enabled</strong></span></label>
                 <label class="check-card">
-                    <input type="checkbox" id="enabled">
-                    <span><strong data-i18n="enabled">Enabled</strong></span>
-                </label>
-                <label class="check-card">
-                    <span class="switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </span>
+                    <span class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></span>
                     <span><strong data-i18n="darkMode">Dark mode</strong></span>
                 </label>
             </div>
-
             <div class="setting-row">
                 <span class="setting-label" data-i18n="proxyMode">Proxy mode</span>
-                <div class="segmented segmented-sm" data-proxy>
-                    <input type="radio" name="proxy_mode" id="proxy_event" value="event" checked>
-                    <label for="proxy_event" data-i18n="event">Event</label>
-                    <input type="radio" name="proxy_mode" id="proxy_property" value="property">
-                    <label for="proxy_property" data-i18n="property">Property</label>
+                <div class="segmented segmented-sm">
+                    <input type="radio" name="proxy_mode" id="proxy_event" value="event" checked><label for="proxy_event" data-i18n="event">Event</label>
+                    <input type="radio" name="proxy_mode" id="proxy_property" value="property"><label for="proxy_property" data-i18n="property">Property</label>
                 </div>
             </div>
-
             <div class="setting-row">
                 <span class="setting-label" data-i18n="serviceCert">Service certificate</span>
-                <div class="segmented segmented-sm" data-cert title="When to encrypt the client id">
-                    <input type="radio" name="server_cert" id="cert_never" value="never" checked>
-                    <label for="cert_never" data-i18n="never">Never</label>
-                    <input type="radio" name="server_cert" id="cert_when" value="when">
-                    <label for="cert_when" data-i18n="whenUsed">When used</label>
+                <div class="segmented segmented-sm" data-cert data-i18n-title="serviceCertHint">
+                    <input type="radio" name="server_cert" id="cert_never" value="never" checked><label for="cert_never" data-i18n="never">Never</label>
+                    <input type="radio" name="server_cert" id="cert_when" value="when"><label for="cert_when" data-i18n="whenUsed">When used</label>
                 </div>
             </div>
-
             <div class="setting-stack">
                 <span class="setting-label" data-i18n="deviceType">Device type</span>
                 <div class="segmented">
-                    <input type="radio" id="wvd_select" name="cdm_type" value="wvd" checked>
-                    <label for="wvd_select" data-i18n="widevineDevice">Widevine device</label>
-                    <input type="radio" id="remote_select" name="cdm_type" value="remote">
-                    <label for="remote_select" data-i18n="remoteCdm">Remote CDM</label>
+                    <input type="radio" id="wvd_select" name="cdm_type" value="wvd" checked><label for="wvd_select" data-i18n="widevineDevice">Widevine device</label>
+                    <input type="radio" id="remote_select" name="cdm_type" value="remote"><label for="remote_select" data-i18n="remoteCdm">Remote CDM</label>
                 </div>
             </div>
         </div>
@@ -80,7 +57,6 @@
             <select id="wvd-combobox" class="dd-native" data-role="select"></select>
         </div>
     </section>
-
     <section class="section compact-section device-section" id="remote">
         <div class="dropdown" data-dropdown data-kind="remote" data-i18n-add="chooseRemote" data-i18n-empty="noRemoteLoaded">
             <select id="remote-combobox" class="dd-native" data-role="select"></select>
@@ -91,18 +67,13 @@
         <div class="section-head"><h2 data-i18n="drmStatus">DRM status</h2></div>
         <div id="drmStatus">
             <div class="drm-progress">
-                <div class="drm-step pending" data-eme="EME_CREATE_MEDIA_KEYS"></div>
-                <div class="drm-step pending" data-eme="EME_CREATE_SESSION"></div>
-                <div class="drm-step pending" data-eme="EME_GENERATE_REQUEST"></div>
-                <div class="drm-step pending" data-eme="EME_LICENSE_REQUEST"></div>
+                <div class="drm-step pending" data-eme="EME_CREATE_MEDIA_KEYS"></div><div class="drm-step pending" data-eme="EME_CREATE_SESSION"></div>
+                <div class="drm-step pending" data-eme="EME_GENERATE_REQUEST"></div><div class="drm-step pending" data-eme="EME_LICENSE_REQUEST"></div>
                 <div class="drm-step pending" data-eme="EME_LICENSE"></div>
             </div>
             <div class="drm-legend">
-                <span data-i18n="mediaKeys">MediaKeys</span>
-                <span data-i18n="session">Session</span>
-                <span data-i18n="generated">Generated</span>
-                <span data-i18n="challenge">Challenge</span>
-                <span data-i18n="license">License</span>
+                <span data-i18n="mediaKeys">MediaKeys</span><span data-i18n="session">Session</span><span data-i18n="generated">Generated</span>
+                <span data-i18n="challenge">Challenge</span><span data-i18n="license">License</span>
             </div>
         </div>
     </section>
@@ -112,65 +83,40 @@
         <div class="collapse-body">
             <div class="setting-row">
                 <span class="setting-label" data-i18n="packager">Packager</span>
-                <div class="segmented segmented-sm" data-shaka>
-                    <input type="radio" name="packager" id="pkg_mp4" value="mp4decrypt" checked>
-                    <label for="pkg_mp4">mp4decrypt</label>
-                    <input type="radio" name="packager" id="pkg_shaka" value="shaka">
-                    <label for="pkg_shaka">shaka-packager</label>
+                <div class="segmented segmented-sm">
+                    <input type="radio" name="packager" id="pkg_mp4" value="mp4decrypt" checked><label for="pkg_mp4">mp4decrypt</label>
+                    <input type="radio" name="packager" id="pkg_shaka" value="shaka"><label for="pkg_shaka">shaka-packager</label>
                 </div>
             </div>
-
             <div class="setting-row">
                 <span class="setting-label" data-i18n="quotes">Quotes</span>
-                <div class="segmented segmented-sm" data-quotes>
-                    <input type="radio" name="quote_style" id="quote_cmd" value="cmd" checked>
-                    <label for="quote_cmd">cmd</label>
-                    <input type="radio" name="quote_style" id="quote_bash" value="bash">
-                    <label for="quote_bash">bash</label>
+                <div class="segmented segmented-sm">
+                    <input type="radio" name="quote_style" id="quote_cmd" value="cmd" checked><label for="quote_cmd">cmd</label>
+                    <input type="radio" name="quote_style" id="quote_bash" value="bash"><label for="quote_bash">bash</label>
                 </div>
             </div>
-
             <div class="setting-row">
                 <span class="setting-label" data-i18n="saveName">Save name</span>
-                <div class="segmented segmented-sm" data-savename>
-                    <input type="radio" name="save_name" id="save_none" value="none" checked>
-                    <label for="save_none" data-i18n="none">None</label>
-                    <input type="radio" name="save_name" id="save_title" value="title">
-                    <label for="save_title" data-i18n="title">Title</label>
-                    <input type="radio" name="save_name" id="save_url" value="url">
-                    <label for="save_url" data-i18n="url">URL</label>
+                <div class="segmented segmented-sm">
+                    <input type="radio" name="save_name" id="save_none" value="none" checked><label for="save_none" data-i18n="none">None</label>
+                    <input type="radio" name="save_name" id="save_title" value="title"><label for="save_title" data-i18n="title">Title</label>
+                    <input type="radio" name="save_name" id="save_url" value="url"><label for="save_url" data-i18n="url">URL</label>
                 </div>
             </div>
-
             <div class="field-split">
-                <label class="field-col">
-                    <span class="minilabel" data-i18n="executableName">Executable name</span>
-                    <input type="text" class="text-box" id="downloader-name" placeholder="N_m3u8DL-RE" data-i18n-placeholder="exePlaceholder">
-                </label>
-                <label class="field-col">
-                    <span class="minilabel" data-i18n="additionalArguments">Additional arguments</span>
-                    <input type="text" class="text-box" id="downloader-args" placeholder="-M format=mkv" data-i18n-placeholder="argsPlaceholder">
-                </label>
+                <label class="field-col"><span class="minilabel" data-i18n="executableName">Executable name</span><input type="text" class="text-box" id="downloader-name" placeholder="N_m3u8DL-RE" data-i18n-placeholder="exePlaceholder"></label>
+                <label class="field-col"><span class="minilabel" data-i18n="additionalArguments">Additional arguments</span><input type="text" class="text-box" id="downloader-args" placeholder="-M format=mkv" data-i18n-placeholder="argsPlaceholder"></label>
             </div>
-
             <label class="command-option-card">
                 <input type="checkbox" id="passHeaders">
-                <span>
-                    <strong data-i18n="passHeaders">Pass headers to N_m3u8DL-RE</strong>
-                    <small>manifest.headers → generated command only</small>
-                </span>
+                <span><strong data-i18n="passHeaders">Pass headers to N_m3u8DL-RE</strong><small data-i18n="headersNote">manifest.headers → generated command only</small></span>
             </label>
         </div>
     </section>
 
     <section class="section">
-        <div class="section-head">
-            <h2 data-i18n="keysRecent">Keys (last 5 min.)</h2>
-            <button type="button" id="openHistory" class="head-btn" data-i18n="history">History</button>
-        </div>
-        <div id="key-container">
-            <div class="empty" data-i18n="noKeys">No keys captured</div>
-        </div>
+        <div class="section-head"><h2 data-i18n="keysRecent">Keys (last 5 min.)</h2><button type="button" id="openHistory" class="head-btn" data-i18n="history">History</button></div>
+        <div id="key-container"><div class="empty" data-i18n="noKeys">No keys captured</div></div>
     </section>
 </div>
 <script src="i18n.js"></script>

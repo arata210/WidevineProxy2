@@ -1,7 +1,0 @@
-.env
-.amo-upload-uuid
-
-.idea/
-node_modules/
-
-artifacts/

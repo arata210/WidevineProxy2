@@ -11,7 +11,9 @@
     "clipboardWrite",
     "scripting"
   ],
-  "host_permissions": ["*://*/*"],
+  "host_permissions": [
+    "*://*/*"
+  ],
   "action": {
     "default_popup": "ui/popup.html",
     "default_icon": {
@@ -30,5 +32,30 @@
   "background": {
     "service_worker": "library/background/bundle.min.js"
   },
-  "content_scripts": []
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "library/isolated/bundle.min.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true,
+      "match_origin_as_fallback": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "library/main/bundle.min.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true,
+      "match_origin_as_fallback": true
+    }
+  ]
 }

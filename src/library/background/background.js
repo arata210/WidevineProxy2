@@ -1,83 +1,5 @@
 import { RemoteCdm } from "./remote_cdm.js";
 
-const SCRIPT_CONFIGS = [
-    {
-        id: "WVP2_ISOLATED",
-        matches: ["<all_urls>"],
-        js: ["library/isolated/bundle.min.js"],
-        runAt: "document_start",
-        world: "ISOLATED",
-        allFrames: true,
-        matchOriginAsFallback: true,
-        persistAcrossSessions: true,
-    },
-    {
-        id: "WVP2_MAIN",
-        matches: ["<all_urls>"],
-        js: ["library/main/bundle.min.js"],
-        runAt: "document_start",
-        world: "MAIN",
-        allFrames: true,
-        matchOriginAsFallback: true,
-        persistAcrossSessions: true,
-    }
-];
-
-let registrationPromise = null;
-
-async function getEnabledState() {
-    const { enabled } = await chrome.storage.sync.get("enabled");
-    const { selected } = await chrome.storage.sync.get("selected");
-    return !!(enabled ?? true) && !!selected;
-}
-
-async function registerScripts() {
-    const existing = await chrome.scripting.getRegisteredContentScripts();
-    const existingIds = new Set(existing.map((s) => s.id));
-
-    const toRegister = SCRIPT_CONFIGS.filter((cfg) => !existingIds.has(cfg.id));
-    const toUpdate = SCRIPT_CONFIGS.filter((cfg) => existingIds.has(cfg.id));
-
-    if (toRegister.length) {
-        await chrome.scripting.registerContentScripts(toRegister);
-    }
-    if (toUpdate.length) {
-        await chrome.scripting.updateContentScripts(toUpdate);
-    }
-}
-
-async function unregisterScripts() {
-    const existing = await chrome.scripting.getRegisteredContentScripts();
-    const existingIds = new Set(existing.map((s) => s.id));
-
-    const ids = SCRIPT_CONFIGS.map((cfg) => cfg.id).filter((id) => existingIds.has(id));
-
-    if (ids.length) {
-        await chrome.scripting.unregisterContentScripts({ ids });
-    }
-}
-
-async function ensureScriptsRegistered() {
-    if (registrationPromise) {
-        return registrationPromise;
-    }
-
-    registrationPromise = (async () => {
-        try {
-            const enabled = await getEnabledState();
-            if (enabled) {
-                await registerScripts();
-            } else {
-                await unregisterScripts();
-            }
-        } finally {
-            registrationPromise = null;
-        }
-    })();
-
-    return registrationPromise;
-}
-
 function openPicker(path, mobile) {
     const url = chrome.runtime.getURL(path);
     if (mobile) {
@@ -205,14 +127,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     ['requestHeaders', chrome.webRequest.OnSendHeadersOptions.EXTRA_HEADERS].filter(Boolean)
 );
 
-chrome.runtime.onInstalled.addListener(() => {
-    ensureScriptsRegistered();
-});
-
-chrome.runtime.onStartup.addListener(() => {
-    ensureScriptsRegistered();
-});
-
 async function setIcon(type) {
     const p = type === "red" ? "-red" : "";
     await chrome.action.setIcon({
@@ -245,8 +159,6 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
                 await setIcon("normal");
             }, 60 * 1000);
         }
-    } else if (areaName === "sync") {
-        ensureScriptsRegistered();
     }
 });
 
@@ -254,9 +166,5 @@ chrome.runtime.onSuspend.addListener(async () => {
     await setIcon("normal");
 });
 
-setTimeout(() => {
-    ensureScriptsRegistered();
-    setIsOutdated();
-    setInterval(setIsOutdated, 12 * 60 * 60 * 1000); // 12 hours
-}, 1000);
+
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "WidevineProxy2",
-  "version": "1.2.7",
+  "version": "1.2.8-compat",
   "permissions": [
     "activeTab",
     "tabs",
@@ -11,7 +11,9 @@
     "clipboardWrite",
     "scripting"
   ],
-  "host_permissions": ["*://*/*"],
+  "host_permissions": [
+    "*://*/*"
+  ],
   "action": {
     "default_popup": "ui/popup.html",
     "default_icon": {
@@ -28,7 +30,31 @@
     "128": "images/icon-128.png"
   },
   "background": {
-    "service_worker": "library/background/bundle.min.js"
+    "service_worker": "library/compat/background.js",
+    "type": "module"
   },
-  "content_scripts": []
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "library/compat/message_proxy.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "library/compat/content_script.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    }
+  ]
 }

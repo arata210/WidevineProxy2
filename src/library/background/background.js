@@ -217,10 +217,10 @@ async function setIcon(type) {
     const p = type === "red" ? "-red" : "";
     await chrome.action.setIcon({
         path: {
-            16: `../../images/icon-16${p}.png`,
-            32: `../../images/icon-32${p}.png`,
-            64: `../../images/icon-64${p}.png`,
-            128: `../../images/icon-128${p}.png`,
+            16: `images/icon-16${p}.png`,
+            32: `images/icon-32${p}.png`,
+            64: `images/icon-64${p}.png`,
+            128: `images/icon-128${p}.png`,
         }
     });
 }

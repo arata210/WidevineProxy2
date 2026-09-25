@@ -79,10 +79,11 @@ async function ensureScriptsRegistered() {
 }
 
 function openPicker(path, mobile) {
+    const url = chrome.runtime.getURL(path);
     if (mobile) {
-        chrome.tabs.create({ url: chrome.runtime.getURL(path) });
+        chrome.tabs.create({ url });
     } else {
-        chrome.windows.create({ url: path, type: "popup", width: 320, height: 180 });
+        chrome.windows.create({ url, type: "popup", width: 420, height: 220 });
     }
 }
 
